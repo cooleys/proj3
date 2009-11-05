@@ -42,7 +42,7 @@ module mips_single(clk, reset);
 
     // sign-extender
     assign extend_immed = { {16{immed[15]}}, immed };
-    
+
     // branch offset shifter
     assign b_offset = extend_immed << 2;
 
@@ -50,7 +50,7 @@ module mips_single(clk, reset);
     wire [4:0] rfile_wn;
     wire [31:0] rfile_rd1, rfile_rd2, rfile_wd, alu_b, alu_out, b_tgt, pc_next,
                 pc, pc_incr, br_add_out, dmem_rdata;
-    
+
     // control signals
 
     wire RegWrite, Branch, PCSrc, RegDst, MemtoReg, MemRead, MemWrite, ALUSrc, Zero;
@@ -84,7 +84,7 @@ module mips_single(clk, reset);
     mux2 #(32)	WRMUX(MemtoReg, alu_out, dmem_rdata, rfile_wd);
 
     control_single CTL(.opcode(opcode), .RegDst(RegDst), .ALUSrc(ALUSrc), .MemtoReg(MemtoReg), 
-                       .RegWrite(RegWrite), .MemRead(MemRead), .MemWrite(MemWrite), .Branch(Branch), 
+                       .RegWrite(RegWrite), .MemRead(MemRead), .MemWrite(MemWrite), .Branch(Branch),
                        .ALUOp(ALUOp));
 
     alu_ctl 	ALUCTL(ALUOp, funct, Operation);
