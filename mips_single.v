@@ -40,7 +40,10 @@ module mips_single(clk, reset);
     assign immed = instr[15:0];
     assign jumpoffset = instr[25:0];
 
-    // sign-extender
+    //shift jumpoffset left 2 for jumpaddress
+    assign jumpaddr = jumpoffset << 2;
+	
+	// sign-extender
     assign extend_immed = { {16{immed[15]}}, immed };
 
     // branch offset shifter
@@ -49,11 +52,13 @@ module mips_single(clk, reset);
     // datapath signals
     wire [4:0] rfile_wn;
     wire [31:0] rfile_rd1, rfile_rd2, rfile_wd, alu_b, alu_out, b_tgt, pc_next,
-                pc, pc_incr, br_add_out, dmem_rdata;
+                pc_int, pc, pc_incr, br_add_out, dmem_rdata;
 
     // control signals
 
-    wire RegWrite, Branch, PCSrc, RegDst, MemtoReg, MemRead, MemWrite, ALUSrc, Zero;
+    wire RegWrite, Branch, PCSrc, RegDst, MemtoReg, MemRead, MemWrite, ALUSrc,
+				Zero, Jump, BranchNE;
+
     wire [1:0] ALUOp;
     wire [2:0] Operation;
 
@@ -62,12 +67,14 @@ module mips_single(clk, reset);
     reg32		PC(clk, reset, pc_next, pc);
 
     add32 		PCADD(pc, 32'd4, pc_incr);
-
     add32 		BRADD(pc_incr, b_offset, b_tgt);
+    add32		JUMPADD(jumpaddr, pc_incr, jumpaddr);
 
-    reg_file	RFILE(clk, RegWrite, rs, rt, rfile_wn, rfile_rd1, rfile_rd2, rfile_wd); 
+	reg_file	RFILE(clk, RegWrite, rs, rt, rfile_wn, rfile_rd1, rfile_rd2, rfile_wd); 
 
-    alu 		ALU(Operation, rfile_rd1, alu_b, alu_out, Zero);
+	alu			ALU(Operation, rfile_rd1, alu_b, alu_out, Zero);
+	
+    alu_ctl 	ALUCTL(ALUOp, funct, Operation);
 
     rom32 		IMEM(pc, instr);
 
@@ -75,9 +82,13 @@ module mips_single(clk, reset);
 
     and  		BR_AND(PCSrc, Branch, Zero);
 
-    mux2 #(5) 	RFMUX(RegDst, rt, rd, rfile_wn);
+    and 		BRNE_AND(PCSrc, BranchNE, !Zero);
+	or			BR_OR(BR_AND, BRNE_AND);
+	
 
-    mux2 #(32)	PCMUX(PCSrc, pc_incr, b_tgt, pc_next);
+	mux2 #(5) 	RFMUX(RegDst, rt, rd, rfile_wn);
+
+    mux2 #(32)	PCMUX(PCSrc, pc_incr, b_tgt, pc_int);
 
     mux2 #(32) 	ALUMUX(ALUSrc, rfile_rd2, extend_immed, alu_b);
 
@@ -85,7 +96,5 @@ module mips_single(clk, reset);
 
     control_single CTL(.opcode(opcode), .RegDst(RegDst), .ALUSrc(ALUSrc), .MemtoReg(MemtoReg), 
                        .RegWrite(RegWrite), .MemRead(MemRead), .MemWrite(MemWrite), .Branch(Branch),
-                       .ALUOp(ALUOp));
-
-    alu_ctl 	ALUCTL(ALUOp, funct, Operation);
+                       .ALUOp(ALUOp), .Jump(Jump), .BranchNE(BranchNE));
 endmodule
