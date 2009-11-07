@@ -81,10 +81,7 @@ module mips_single(clk, reset);
     mem32 		DMEM(clk, MemRead, MemWrite, alu_out, rfile_rd2, dmem_rdata);
 
     and  		BR_AND(PCSrc, Branch, Zero);
-
-    and 		BRNE_AND(PCSrc, BranchNE, !Zero);
-	or			BR_OR(BR_AND, BRNE_AND);
-	
+    and  		BRNE_AND(PCSrc, (Branch & Zero), (BranchNE & !(Zero)));
 
 	mux2 #(5) 	RFMUX(RegDst, rt, rd, rfile_wn);
 
