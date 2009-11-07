@@ -86,13 +86,13 @@ module mips_single(clk, reset);
 	mux2 #(5) 	RFMUX(RegDst, rt, rd, rfile_wn);
 
     mux2 #(32)	PCMUX(PCSrc, pc_incr, b_tgt, pc_int);
+	
+	mux2 #(32)  JMUX(Jump, pc_int, jumpaddr, pc_next);
 
     mux2 #(32) 	ALUMUX(ALUSrc, rfile_rd2, extend_immed, alu_b);
 
     mux2 #(32)	WRMUX(MemtoReg, alu_out, dmem_rdata, rfile_wd);
     
-	mux2 #(32)  JMUX(Jump, pc_int, jumpaddr, pc_next);
-
     control_single CTL(.opcode(opcode), .RegDst(RegDst), .ALUSrc(ALUSrc), .MemtoReg(MemtoReg), 
                        .RegWrite(RegWrite), .MemRead(MemRead), .MemWrite(MemWrite), .Branch(Branch),
                        .Jump(Jump), .BranchNE(BranchNE), .ALUOp(ALUOp));
