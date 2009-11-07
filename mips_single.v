@@ -68,7 +68,7 @@ module mips_single(clk, reset);
 
     add32 		PCADD(pc, 32'd4, pc_incr);
     add32 		BRADD(pc_incr, b_offset, b_tgt);
-    add32		JUMPADD(jumpaddr, pc_incr, jumpaddr);
+    add32		JUMPADD(jumpoffset<<2, pc_incr, jumpaddr);
 
 	reg_file	RFILE(clk, RegWrite, rs, rt, rfile_wn, rfile_rd1, rfile_rd2, rfile_wd); 
 
