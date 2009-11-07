@@ -29,7 +29,7 @@ module mips_single(clk, reset);
     wire [4:0] rs, rt, rd, shamt;
     wire [15:0] immed;
     wire [31:0] extend_immed, b_offset;
-    wire [25:0] jumpoffset;
+    wire [25:0] jumpoffset, jumpaddr;
 
     assign opcode = instr[31:26];
     assign rs = instr[25:21];
@@ -80,8 +80,8 @@ module mips_single(clk, reset);
 
     mem32 		DMEM(clk, MemRead, MemWrite, alu_out, rfile_rd2, dmem_rdata);
 
-    and  		BR_AND(PCSrc, Branch, Zero);
-    and  		BRNE_AND(PCSrc, (Branch & Zero), (BranchNE & !(Zero)));
+    //and  		BR_AND(PCSrc, Branch, Zero);
+    and  		BR_AND(PCSrc, (Branch & Zero), (BranchNE & !(Zero)));
 
 	mux2 #(5) 	RFMUX(RegDst, rt, rd, rfile_wn);
 
@@ -91,7 +91,7 @@ module mips_single(clk, reset);
 
     mux2 #(32)	WRMUX(MemtoReg, alu_out, dmem_rdata, rfile_wd);
     
-	mux2 #(32)  JMUX(Jump, pc_intmdt, jumpaddress, pc_next);
+	mux2 #(32)  JMUX(Jump, pc_int, jumpaddr, pc_next);
 
     control_single CTL(.opcode(opcode), .RegDst(RegDst), .ALUSrc(ALUSrc), .MemtoReg(MemtoReg), 
                        .RegWrite(RegWrite), .MemRead(MemRead), .MemWrite(MemWrite), .Branch(Branch),
